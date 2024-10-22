@@ -66,16 +66,21 @@ public class AuthController {
             throw new RuntimeException("Refresh token is missing");
         }
 
-        Token storedToken = tokenService.findByRefreshTokenHash(tokenService.hashToken(refreshToken))
+        // Hash the incoming refresh token to compare against the stored hashed token
+        String hashedRefreshToken = tokenService.hashToken(refreshToken);
+
+        Token storedToken = tokenService.findByRefreshTokenHash(hashedRefreshToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-        if (JwtUtil.isTokenExpired(storedToken.getRefreshTokenHash())) {
+        if (JwtUtil.isTokenExpired(refreshToken)) {  // Check if the plain JWT is expired
             throw new RuntimeException("Refresh token expired");
         }
 
         String newAccessToken = JwtUtil.generateAccessToken(storedToken.getUser().getUsername());
-        storedToken.setAccessTokenHash(tokenService.hashToken(newAccessToken)); // Update the hashed access token
-        tokenService.generateTokens(storedToken.getUser(), newAccessToken, storedToken.getRefreshTokenHash());
+        storedToken.setAccessTokenHash(tokenService.hashToken(newAccessToken));  // Update with the new hashed access token
+        tokenService.generateTokens(storedToken.getUser(), newAccessToken, refreshToken);  // Save the updated token info
 
         return ResponseEntity.ok(storedToken);
     }
+
+
 }
