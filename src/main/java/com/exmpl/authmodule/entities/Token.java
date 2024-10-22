@@ -12,8 +12,8 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String accessToken;
-    private String refreshToken;
+    private String accessTokenHash; // Store hashed access token
+    private String refreshTokenHash; // Store hashed refresh token
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -22,7 +22,30 @@ public class Token {
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
 
-    // Getters and Setters
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getAccessTokenHash() {
+        return accessTokenHash;
+    }
+
+    public void setAccessTokenHash(String accessTokenHash) {
+        this.accessTokenHash = accessTokenHash;
+    }
+
+    public String getRefreshTokenHash() {
+        return refreshTokenHash;
+    }
+
+    public void setRefreshTokenHash(String refreshTokenHash) {
+        this.refreshTokenHash = refreshTokenHash;
+    }
 
     public User getUser() {
         return user;
@@ -32,20 +55,12 @@ public class Token {
         this.user = user;
     }
 
-    public String getAccessToken() {
-        return accessToken;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public LocalDateTime getExpiresAt() {
@@ -54,13 +69,5 @@ public class Token {
 
     public void setExpiresAt(LocalDateTime expiresAt) {
         this.expiresAt = expiresAt;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

@@ -29,12 +29,10 @@ public class TokenValidationAspect {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {
             HttpServletRequest request = attributes.getRequest();
-            // Extract the token from the Authorization header
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                return authHeader.substring(7); // Remove "Bearer " prefix
-            }
+            // Extract the token from the Authorization header or request parameters
+            String token = request.getHeader("Authorization");
+            return token != null ? token.replace("Bearer ", "") : null;
         }
-        return null; // No token found
+        return null;
     }
 }
