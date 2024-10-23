@@ -1,5 +1,6 @@
 package com.exmpl.authmodule.custom;
 
+import com.exmpl.authmodule.entities.Token;
 import com.exmpl.authmodule.services.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.JoinPoint;
@@ -9,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Aspect
 @Component
@@ -22,6 +26,14 @@ public class TokenValidationAspect {
         String token = getTokenFromRequest();
         if (token == null || !tokenService.validateAccessToken(token)) {
             throw new RuntimeException("Invalid or expired token");
+        }
+        Optional<Token> optionalExistingToken = tokenService.findByAccessTokenHash(token);
+        if (optionalExistingToken.isPresent()) {
+            Token existingToken = optionalExistingToken.get(); // Extract the Token from Optional
+            existingToken.setExpiresAt(LocalDateTime.now().plusHours(1)); // Extend expiry
+            tokenService.save(existingToken); // Save updated token
+
+
         }
     }
 

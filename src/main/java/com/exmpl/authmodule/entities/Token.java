@@ -12,8 +12,8 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String accessToken; // Store normal access token
     private String accessTokenHash; // Store hashed access token
-    private String refreshTokenHash; // Store hashed refresh token
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -31,6 +31,14 @@ public class Token {
         this.id = id;
     }
 
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
     public String getAccessTokenHash() {
         return accessTokenHash;
     }
@@ -39,13 +47,13 @@ public class Token {
         this.accessTokenHash = accessTokenHash;
     }
 
-    public String getRefreshTokenHash() {
-        return refreshTokenHash;
-    }
-
-    public void setRefreshTokenHash(String refreshTokenHash) {
-        this.refreshTokenHash = refreshTokenHash;
-    }
+//    public String getRefreshTokenHash() {
+//        return refreshTokenHash;
+//    }
+//
+//    public void setRefreshTokenHash(String refreshTokenHash) {
+//        this.refreshTokenHash = refreshTokenHash;
+//    }
 
     public User getUser() {
         return user;

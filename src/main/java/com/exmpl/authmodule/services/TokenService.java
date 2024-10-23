@@ -23,23 +23,27 @@ public class TokenService {
 
     // Create and save a new token for the user,
     // setting the hashed accessToken, hashed refreshToken, user, and expiration time.
-    public Token generateTokens(User user, String accessTokenHash, String refreshTokenHash) {
+    public Token generateTokens(User user, String accessToken, String accessTokenHash) {
         Token token = new Token();
+        token.setAccessToken(accessToken); // Store normal access token
         token.setAccessTokenHash(accessTokenHash); // Store hashed access token
-        token.setRefreshTokenHash(refreshTokenHash); // Store hashed refresh token
         token.setUser(user);
         token.setCreatedAt(LocalDateTime.now());
         token.setExpiresAt(LocalDateTime.now().plusHours(1));
         return tokenRepository.save(token);
+    }
+    public Token save(Token token) {
+        return tokenRepository.save(token); // Save or update the token
     }
 
     public Optional<Token> findByAccessTokenHash(String accessTokenHash) {
         return tokenRepository.findByAccessTokenHash(accessTokenHash);
     }
 
-    public Optional<Token> findByRefreshTokenHash(String refreshTokenHash) {
-        return tokenRepository.findByRefreshTokenHash(refreshTokenHash);
+    public Optional<Token> findByAccessToken(String accessToken) {
+        return tokenRepository.findByAccessToken(accessToken);
     }
+
 
     public boolean validateAccessToken(String accessToken) {
        //String hashedToken = hashToken(accessToken); // Hash the incoming token
@@ -58,4 +62,7 @@ public class TokenService {
             throw new RuntimeException("Error hashing token", e);
         }
     }
+
+
+
 }

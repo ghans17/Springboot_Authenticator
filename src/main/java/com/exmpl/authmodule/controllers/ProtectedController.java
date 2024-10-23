@@ -13,4 +13,11 @@ public class ProtectedController {
     public ResponseEntity<String> getProtectedData() {
         return ResponseEntity.ok("This is protected data");
     }
+
+
+    @ValidToken
+    @GetMapping("/protected-data2")
+    public ResponseEntity<String> getProtectedData2() {
+        return ResponseEntity.ok("This is protected data2");
+    }
 }
