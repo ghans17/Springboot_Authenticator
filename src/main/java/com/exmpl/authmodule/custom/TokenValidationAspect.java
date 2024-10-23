@@ -31,8 +31,10 @@ public class TokenValidationAspect {
             HttpServletRequest request = attributes.getRequest();
             // Extract the token from the Authorization header or request parameters
             String token = request.getHeader("Authorization");
+            System.out.println("Extracted token from request: " + token);
             return token != null ? token.replace("Bearer ", "") : null;
         }
         return null;
     }
+
 }

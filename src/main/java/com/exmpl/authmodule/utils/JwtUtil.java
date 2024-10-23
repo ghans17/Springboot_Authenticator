@@ -49,9 +49,9 @@ public class JwtUtil {
         return expiration.before(new Date());
     }
 
-    // Validate token against the user entity
-    public static boolean validateToken(String token, User user) {
-        final String username = extractUsername(token);
-        return (username.equals(user.getUsername()) && !isTokenExpired(token));
-    }
+//    // Validate token against the user entity
+//    public static boolean validateToken(String token, User user) {
+//        final String username = extractUsername(token);
+//        return (username.equals(user.getUsername()) && !isTokenExpired(token));
+//    }
 }

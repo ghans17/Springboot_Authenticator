@@ -23,10 +23,10 @@ public class TokenService {
 
     // Create and save a new token for the user,
     // setting the hashed accessToken, hashed refreshToken, user, and expiration time.
-    public Token generateTokens(User user, String accessToken, String refreshToken) {
+    public Token generateTokens(User user, String accessTokenHash, String refreshTokenHash) {
         Token token = new Token();
-        token.setAccessTokenHash(hashToken(accessToken)); // Store hashed access token
-        token.setRefreshTokenHash(hashToken(refreshToken)); // Store hashed refresh token
+        token.setAccessTokenHash(accessTokenHash); // Store hashed access token
+        token.setRefreshTokenHash(refreshTokenHash); // Store hashed refresh token
         token.setUser(user);
         token.setCreatedAt(LocalDateTime.now());
         token.setExpiresAt(LocalDateTime.now().plusHours(1));
@@ -42,9 +42,10 @@ public class TokenService {
     }
 
     public boolean validateAccessToken(String accessToken) {
-        String hashedToken = hashToken(accessToken); // Hash the incoming token
-        Optional<Token> tokenOptional = findByAccessTokenHash(hashedToken); // Find by hashed token
+       //String hashedToken = hashToken(accessToken); // Hash the incoming token
+        Optional<Token> tokenOptional = findByAccessTokenHash(accessToken); // Find by hashed token
         return tokenOptional.isPresent(); // Return true if token exists
+        //return tokenOptional.isPresent() && !JwtUtil.isTokenExpired(accessToken);
     }
 
     // Hashing method

@@ -47,17 +47,22 @@ public class AuthController {
         String accessToken = JwtUtil.generateAccessToken(user.getUsername());
         String refreshToken = JwtUtil.generateRefreshToken(user.getUsername());
 
+        // Hash the tokens
+        String hashedAccessToken = tokenService.hashToken(accessToken);
+        String hashedRefreshToken = tokenService.hashToken(refreshToken);
+
         // Save hashed tokens in the database
-        tokenService.generateTokens(user, accessToken, refreshToken);
+        tokenService.generateTokens(user, hashedAccessToken, hashedRefreshToken);
 
         // Return plain tokens in the response
-        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
+        //return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
+
+        // Return hashed tokens in the response
+        return ResponseEntity.ok(new AuthResponse(hashedAccessToken, hashedRefreshToken));
 
     }
 
 
-//        Token token = tokenService.generateTokens(user, accessToken, refreshToken);
-//        return ResponseEntity.ok(token);
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> tokenRequest) {
