@@ -13,16 +13,21 @@ public class Token {
     private Long id;
 
     private String accessToken; // Store normal access token
+
     private String accessTokenHash; // Store hashed access token
 
-    @ManyToOne
+
+    @ManyToOne          //(user can have multiple tokens)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     private LocalDateTime createdAt;
+
     private LocalDateTime expiresAt;
 
+
     // Getters and setters
+
     public Long getId() {
         return id;
     }
@@ -46,14 +51,6 @@ public class Token {
     public void setAccessTokenHash(String accessTokenHash) {
         this.accessTokenHash = accessTokenHash;
     }
-
-//    public String getRefreshTokenHash() {
-//        return refreshTokenHash;
-//    }
-//
-//    public void setRefreshTokenHash(String refreshTokenHash) {
-//        this.refreshTokenHash = refreshTokenHash;
-//    }
 
     public User getUser() {
         return user;

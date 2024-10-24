@@ -1,10 +1,7 @@
 package com.exmpl.authmodule.utils;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
-import java.nio.charset.StandardCharsets;
 import org.mindrot.jbcrypt.BCrypt;
+
 public class PasswordUtil {
 
     // Hash the password using BCrypt
@@ -15,6 +12,10 @@ public class PasswordUtil {
     // Check if the raw password matches the hashed password
     public static boolean matchPassword(String rawPassword, String hashedPassword) {
         return BCrypt.checkpw(rawPassword, hashedPassword);
+
+        //BCrypt includes the salt in the hashed password, so when checkpw is called,
+        // it retrieves the salt,hashes the raw password again, and
+        // compares the resulting hash to the stored hash.
     }
 }
 

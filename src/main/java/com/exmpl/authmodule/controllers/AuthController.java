@@ -2,9 +2,7 @@ package com.exmpl.authmodule.controllers;
 
 import com.exmpl.authmodule.DTOs.AuthResponse;
 import com.exmpl.authmodule.DTOs.LoginRequest;
-import com.exmpl.authmodule.entities.Token;
 import com.exmpl.authmodule.entities.User;
-import com.exmpl.authmodule.repositories.UserRepository;
 import com.exmpl.authmodule.services.TokenService;
 import com.exmpl.authmodule.services.UserService;
 import com.exmpl.authmodule.utils.JwtUtil;
@@ -16,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/auth")
@@ -45,13 +43,11 @@ public class AuthController {
         }
 
         String accessToken = JwtUtil.generateAccessToken(user.getUsername());
-        String refreshToken = JwtUtil.generateRefreshToken(user.getUsername());
+
 
         // Hash the tokens
         String hashedAccessToken = tokenService.hashToken(accessToken);
-//        String hashedRefreshToken = tokenService.hashToken(refreshToken);
 
-        // Save hashed tokens in the database
         // Save the normal and hashed access tokens in the database
         tokenService.generateTokens(user, accessToken, hashedAccessToken);
 
@@ -62,31 +58,5 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(hashedAccessToken));
 
     }
-
-
-//
-//    @PostMapping("/refresh-token")
-//    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> tokenRequest) {
-//        String refreshToken = tokenRequest.get("refreshToken");  // Extract the refresh token from the request body
-//        if (refreshToken == null || refreshToken.isEmpty()) {
-//            throw new RuntimeException("Refresh token is missing");
-//        }
-//
-//        // Hash the incoming refresh token to compare against the stored hashed token
-//        String hashedRefreshToken = tokenService.hashToken(refreshToken);
-//
-//        Token storedToken = tokenService.findByRefreshTokenHash(hashedRefreshToken)
-//                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-//        if (JwtUtil.isTokenExpired(refreshToken)) {  // Check if the plain JWT is expired
-//            throw new RuntimeException("Refresh token expired");
-//        }
-//
-//        String newAccessToken = JwtUtil.generateAccessToken(storedToken.getUser().getUsername());
-//        storedToken.setAccessTokenHash(tokenService.hashToken(newAccessToken));  // Update with the new hashed access token
-//        tokenService.generateTokens(storedToken.getUser(), newAccessToken, refreshToken);  // Save the updated token info
-//
-//        return ResponseEntity.ok(storedToken);
-//    }
-
 
 }

@@ -1,5 +1,6 @@
 package com.exmpl.authmodule.entities;
 
+import com.exmpl.authmodule.custom.EncryptionConverter;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -12,9 +13,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //encrypted before being stored in the database and decrypted when retrieved
+    @Convert(converter = EncryptionConverter.class)
     private String firstName;
+
+    @Convert(converter = EncryptionConverter.class)
     private String lastName;
 
+    //unique and cannot be null
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -25,8 +31,6 @@ public class User {
     private String password;
 
     private String imageUrl;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     // Getters and Setters
 
@@ -78,19 +82,4 @@ public class User {
         this.imageUrl = imageUrl;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

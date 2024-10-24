@@ -15,7 +15,9 @@ public class ProtectedController {
     }
 
 
-    @ValidToken
+//    @ValidToken
+
+    @ValidToken(message = "Access token is required for /protected-data!")
     @GetMapping("/protected-data2")
     public ResponseEntity<String> getProtectedData2() {
         return ResponseEntity.ok("This is protected data2");
