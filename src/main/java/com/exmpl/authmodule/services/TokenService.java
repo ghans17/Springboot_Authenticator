@@ -3,8 +3,6 @@ package com.exmpl.authmodule.services;
 import com.exmpl.authmodule.entities.Token;
 import com.exmpl.authmodule.entities.User;
 import com.exmpl.authmodule.repositories.TokenRepository;
-import com.exmpl.authmodule.repositories.UserRepository;
-import com.exmpl.authmodule.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,19 +19,19 @@ public class TokenService {
     @Autowired
     private TokenRepository tokenRepository;
 
-    // Create and save a new token for the user,
+    // Create and save a new token entity for the user,
     // setting the hashed accessToken, user, and expiration time.
-    public Token generateTokens(User user, String accessToken, String accessTokenHash) {
+    public void generateTokens(User user, String accessToken, String accessTokenHash) {
         Token token = new Token();
         token.setAccessToken(accessToken); // Store normal access token
         token.setAccessTokenHash(accessTokenHash); // Store hashed access token
         token.setUser(user);
         token.setCreatedAt(LocalDateTime.now());
         token.setExpiresAt(LocalDateTime.now().plusHours(1));
-        return tokenRepository.save(token);
+        tokenRepository.save(token);
     }
-    public Token save(Token token) {
-        return tokenRepository.save(token); // Save or update the token
+    public void save(Token token) {
+        tokenRepository.save(token);
     }
 
 

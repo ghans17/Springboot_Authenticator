@@ -26,7 +26,7 @@ public class AuthController {
     @Autowired
     private TokenService tokenService;
 
-    @PostMapping("/register")
+    @PostMapping("/register/1.0.0")
     public ResponseEntity<?> register(@RequestBody User user) {
         User savedUser = userService.registerUser(user);
         return ResponseEntity.ok(savedUser);

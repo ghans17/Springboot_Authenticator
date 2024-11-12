@@ -11,9 +11,9 @@ import java.util.Base64;
 public class EncryptionUtil {
 
     private static final String ALGORITHM = "AES";
-    private static final String SECRET_KEY = "kuchbhi";
+    private static final String SECRET_KEY = "kuchh_bhi";
 
-    // Generate a secret key from the provided secret string
+    // Generate a secret key from this secret string
     private static SecretKey getSecretKey() throws Exception {
         MessageDigest sha = MessageDigest.getInstance("SHA-256");
         byte[] key = sha.digest(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
