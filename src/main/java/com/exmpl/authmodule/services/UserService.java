@@ -9,6 +9,7 @@ import com.exmpl.authmodule.utils.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,6 +17,7 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
 
     @Autowired
     private TokenService tokenService;
@@ -29,6 +31,7 @@ public class UserService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+
 
     //authenticate and generate token
 //    public String authenticateUser(LoginRequest loginRequest) {

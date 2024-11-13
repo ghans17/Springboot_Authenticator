@@ -44,6 +44,11 @@ public class TokenService {
         return tokenRepository.findByAccessToken(accessToken);
     }
 
+    public Optional<User> getUserFromToken(String token) {
+        Optional<Token> tokenOptional = tokenRepository.findByAccessToken(token);
+        return tokenOptional.map(Token::getUser); // Returns the user if token is valid
+    }
+
 
     public boolean validateAccessToken(String accessToken) {
 
