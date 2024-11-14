@@ -3,6 +3,7 @@ package com.exmpl.authmodule.services;
 import com.exmpl.authmodule.entities.Token;
 import com.exmpl.authmodule.entities.User;
 import com.exmpl.authmodule.repositories.TokenRepository;
+import com.exmpl.authmodule.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +19,31 @@ public class TokenService {
 
     @Autowired
     private TokenRepository tokenRepository;
+    // Method to check for existing token or create a new one
+    public Token getOrCreateToken(User user) {
+        Optional<Token> existingTokenOptional = tokenRepository.findByUser(user);
 
-    // Create and save a new token entity for the user,
-    // setting the hashed accessToken, user, and expiration time.
-    public void generateTokens(User user, String accessToken, String accessTokenHash) {
-        Token token = new Token();
-        token.setAccessToken(accessToken); // Store normal access token
-        token.setAccessTokenHash(accessTokenHash); // Store hashed access token
-        token.setUser(user);
-        token.setCreatedAt(LocalDateTime.now());
-        token.setExpiresAt(LocalDateTime.now().plusHours(1));
-        tokenRepository.save(token);
+        if (existingTokenOptional.isPresent()) {
+            Token existingToken = existingTokenOptional.get();
+            // If the existing token is valid, extend the expiration time
+            if (existingToken.getExpiresAt().isAfter(LocalDateTime.now())) {
+                existingToken.setExpiresAt(LocalDateTime.now().plusHours(1)); // Extend expiry
+                return tokenRepository.save(existingToken);
+            }
+        }
+
+        // If no valid token exists, create a new one
+        String accessToken = JwtUtil.generateAccessToken(user.getUsername()); // Generate new token
+        String hashedAccessToken = hashToken(accessToken); // Hash the token before saving
+
+        Token newToken = new Token();
+        newToken.setUser(user);
+        newToken.setAccessToken(accessToken);
+        newToken.setAccessTokenHash(hashedAccessToken);
+        newToken.setExpiresAt(LocalDateTime.now().plusHours(1)); // Set expiration time
+        return tokenRepository.save(newToken); // Save the new token
     }
+
     public void save(Token token) {
         tokenRepository.save(token);
     }

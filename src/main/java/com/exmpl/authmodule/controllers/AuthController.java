@@ -2,6 +2,7 @@ package com.exmpl.authmodule.controllers;
 
 import com.exmpl.authmodule.DTOs.AuthResponse;
 import com.exmpl.authmodule.DTOs.LoginRequest;
+import com.exmpl.authmodule.entities.Token;
 import com.exmpl.authmodule.entities.User;
 import com.exmpl.authmodule.services.TokenService;
 import com.exmpl.authmodule.services.UserService;
@@ -42,20 +43,20 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid password");
         }
 
-        String accessToken = JwtUtil.generateAccessToken(user.getUsername());
-
-
-        // Hash the tokens
-        String hashedAccessToken = tokenService.hashToken(accessToken);
+//        String accessToken = JwtUtil.generateAccessToken(user.getUsername());
+//
+//
+//        // Hash the tokens
+//        String hashedAccessToken = tokenService.hashToken(accessToken);
 
         // Save the normal and hashed access tokens in the database
-        tokenService.generateTokens(user, accessToken, hashedAccessToken);
+        Token token =tokenService.getOrCreateToken(user);
 
         // Return plain tokens in the response
         //return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
 
         // Return hashed tokens in the response
-        return ResponseEntity.ok(new AuthResponse(hashedAccessToken));
+        return ResponseEntity.ok(new AuthResponse(token.getAccessTokenHash()));
 
     }
 

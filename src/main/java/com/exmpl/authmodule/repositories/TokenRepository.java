@@ -1,6 +1,7 @@
 package com.exmpl.authmodule.repositories;
 
 import com.exmpl.authmodule.entities.Token;
+import com.exmpl.authmodule.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +13,8 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     Optional<Token> findByAccessTokenHash(String accessTokenHash); // Find by hashed access token
 
     Optional<Token> findByAccessToken(String accessToken);
+
+    Optional<Token> findByUser(User user);
 }
 
 
