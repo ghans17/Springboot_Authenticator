@@ -1,10 +1,10 @@
 package com.exmpl.authmodule.entities;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class AppID {
@@ -14,6 +14,9 @@ public class AppID {
     private Long id;
 
     private String appId;  // Unique identifier for the app/subproject
+
+    @ManyToMany(mappedBy = "appIds", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 
     // Getters and setters
     public String getAppId() {

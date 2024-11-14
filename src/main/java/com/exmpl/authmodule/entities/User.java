@@ -4,6 +4,7 @@ import com.exmpl.authmodule.custom.EncryptionConverter;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -34,10 +35,13 @@ public class User {
     private String imageUrl;
 
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")  // This creates a foreign key relationship
-    private Set<AppID> appIds;  // Mapping App-IDs the user has access to
-
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_appid",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "app_id")
+    )
+    private Set<AppID> appIds = new HashSet<>();
     // Getters and setters
     public Set<AppID> getAppIds() {
         return appIds;
