@@ -4,7 +4,7 @@ public class LoginRequest {
 
     private String username;
     private String password;
-
+    private String otpCode;
     // Default constructor
     public LoginRequest() {
     }
@@ -31,6 +31,14 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
     }
 }
 

@@ -12,7 +12,7 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
 
     Optional<Token> findByAccessTokenHash(String accessTokenHash); // Find by hashed access token
 
-    Optional<Token> findByAccessToken(String accessToken);
+//    Optional<Token> findByAccessToken(String accessToken);
 
     Optional<Token> findByUser(User user);
 }
