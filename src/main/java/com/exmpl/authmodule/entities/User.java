@@ -29,10 +29,11 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @Column()
     private String password;
 
-    private String imageUrl;
+    @Column(name = "password_setup_token")
+    private String passwordSetupToken;
 
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -91,12 +92,11 @@ public class User {
         this.password = password;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getPasswordSetupToken() {
+        return passwordSetupToken;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setPasswordSetupToken(String passwordSetupToken) {
+        this.passwordSetupToken = passwordSetupToken;
     }
-
 }

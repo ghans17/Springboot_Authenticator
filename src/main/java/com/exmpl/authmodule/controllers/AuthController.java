@@ -3,10 +3,12 @@ package com.exmpl.authmodule.controllers;
 import com.exmpl.authmodule.DTOs.AuthResponse;
 import com.exmpl.authmodule.DTOs.LoginRequest;
 import com.exmpl.authmodule.DTOs.OtpValidationRequest;
+import com.exmpl.authmodule.DTOs.PasswordSetupRequest;
 import com.exmpl.authmodule.entities.Token;
 import com.exmpl.authmodule.entities.User;
 import com.exmpl.authmodule.repositories.OtpRepository;
 import com.exmpl.authmodule.services.OTPService;
+import com.exmpl.authmodule.services.PasswordSetupService;
 import com.exmpl.authmodule.services.TokenService;
 import com.exmpl.authmodule.services.UserService;
 import com.exmpl.authmodule.utils.JwtUtil;
@@ -37,17 +39,45 @@ public class AuthController {
     @Autowired
     private OtpRepository otpRepository;
 
+    @Autowired
+    private PasswordSetupService passwordSetupService;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
+        // Save the new user
         User savedUser = userService.registerUser(user);
-        return ResponseEntity.ok(savedUser);
+
+        // Create a password setup token and send email
+        passwordSetupService.createPasswordSetupToken(savedUser);
+
+        return ResponseEntity.ok("Registration successful. Password setup link has been sent to your email.");
     }
 
+    @PostMapping("/password-setup/complete")
+    public ResponseEntity<?> completePasswordSetup(@RequestBody PasswordSetupRequest request) {
+        if (!passwordSetupService.validateToken(request.getToken())) {
+            return ResponseEntity.status(400).body("Invalid or expired token");
+        }
+
+        User user = userService.findByPasswordSetupToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        user.setPassword(PasswordUtil.hashPassword(request.getNewPassword()));
+        userService.saveUser(user);
+
+        passwordSetupService.markTokenAsUsed(request.getToken());
+        return ResponseEntity.ok("Password has been successfully updated.");
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         User user = userService.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Ensure the user has set their password
+        if (user.getPassword() == null) {
+            return ResponseEntity.status(400).body("Password not set. Please set your password using the setup link sent to your email.");
+        }
 
         // Verify password
         if (!PasswordUtil.matchPassword(loginRequest.getPassword(), user.getPassword())) {

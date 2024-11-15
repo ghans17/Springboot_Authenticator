@@ -24,12 +24,21 @@ public class UserService {
 
     //create user
     public User registerUser(User user) {
-        user.setPassword(PasswordUtil.hashPassword(user.getPassword()));
+        user.setPassword(null);
+//        user.setPassword(PasswordUtil.hashPassword(user.getPassword()));
         return userRepository.save(user);
     }
 
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public Optional<User> findByPasswordSetupToken(String token) {
+        return userRepository.findByPasswordSetupToken(token);
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
     }
 
 
