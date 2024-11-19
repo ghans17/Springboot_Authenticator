@@ -1,6 +1,7 @@
 package com.argusoft.authmodule.custom;
 
 import com.argusoft.authmodule.entities.Token;
+import com.argusoft.authmodule.entities.User;
 import com.argusoft.authmodule.repositories.AppIdRepository;
 import com.argusoft.authmodule.services.TokenService;
 import com.argusoft.authmodule.services.UserService;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @Aspect
 @Component
 @Order(1)
-public class TokenValidationAspect {
+public class AccessValidationAspect {
 
     @Autowired
     private TokenService tokenService;
@@ -31,13 +32,13 @@ public class TokenValidationAspect {
     private AppIdRepository appIdRepository;  // We need this to check App-ID
 
 
-        @Before("@annotation(validToken)")
-        public void validateToken(JoinPoint joinPoint, ValidToken validToken) throws Throwable {
+        @Before("@annotation(validateAccess)")
+        public void validateToken(JoinPoint joinPoint, ValidateAcess validateAcess) throws Throwable {
             String token = getTokenFromRequest();
 
             // Validate the token
             if (token == null || !tokenService.validateAccessToken(token)) {
-                throw new RuntimeException(validToken.message());
+                throw new RuntimeException(validateAcess.message());
             }
 
             // If valid, extend the expiration time
@@ -47,6 +48,40 @@ public class TokenValidationAspect {
                 existingToken.setExpiresAt(LocalDateTime.now().plusHours(1)); // Extend expiry
                 tokenService.save(existingToken); // Save updated token
             }
+
+            String username = extractUsername(token);
+
+            // Validate App-ID access
+            String appId = validateAcess.appId(); // Get the App-ID from the annotation
+            if (!hasAccessToAppId(username, appId)) {
+                throw new RuntimeException("User does not have access to this App-ID.");
+            }
+        }
+
+
+    // Extract username from the token
+        private String extractUsername(String token) {
+            // Find the token by its hash and extract the associated user
+            Optional<Token> tokenOptional = tokenService.findByAccessTokenHash(token);
+            if (tokenOptional.isPresent()) {
+                Token tokenEntity = tokenOptional.get();
+                // Return the username associated with the token
+                return tokenEntity.getUser().getUsername();
+            }
+            throw new RuntimeException("Invalid token or token has expired");
+        }
+
+        // Check if the user has access to the specified App-ID
+        private boolean hasAccessToAppId(String username, String appId) {
+            // Find the user by username
+            Optional<User> userOptional = userService.findByUsername(username);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                // Check if the user has the required App-ID
+                return user.getAppIds().stream()
+                        .anyMatch(app -> app.getAppId().equals(appId)); // Compare with appId field
+            }
+            throw new RuntimeException("User not found");
         }
 
         // Extract the token from the Authorization header
