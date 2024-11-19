@@ -31,8 +31,6 @@ public class User {
     @Column()
     private String password;
 
-    @Column(name = "password_setup_token")
-    private String passwordSetupToken;
 
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -91,11 +89,5 @@ public class User {
         this.password = password;
     }
 
-    public String getPasswordSetupToken() {
-        return passwordSetupToken;
-    }
 
-    public void setPasswordSetupToken(String passwordSetupToken) {
-        this.passwordSetupToken = passwordSetupToken;
-    }
 }

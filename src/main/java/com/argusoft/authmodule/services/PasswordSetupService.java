@@ -39,8 +39,7 @@ public class PasswordSetupService {
 
         // Save token
         tokenRepository.save(passwordSetupToken);
-        user.setPasswordSetupToken(token);
-        userRepository.save(user);
+
         // Send email
         sendPasswordSetupEmail(user, token);
 
@@ -58,28 +57,28 @@ public class PasswordSetupService {
         emailService.sendEmail(user.getEmail(), "PASSWORD_SETUP_EMAIL", placeholders);
     }
 
-    public boolean validateToken(String token) {
+    public PasswordSetupToken validateToken(String token) {
         Optional<PasswordSetupToken> tokenOptional = tokenRepository.findByToken(token);
 
         if (tokenOptional.isPresent()) {
-            PasswordSetupToken passwordSetupToken = tokenOptional.get();
-
-            // Check if token is expired or already used
-            if (passwordSetupToken.getExpiresAt().isBefore(LocalDateTime.now()) || passwordSetupToken.isUsed()) {
-                return false;
+            PasswordSetupToken setupToken = tokenOptional.get();
+            // Check if the token is expired or has already been used
+            if (setupToken.getExpiresAt().isBefore(LocalDateTime.now()) || setupToken.isUsed()) {
+                return null;  // Token has expired or is already used
             }
-
-            return true;
+            return setupToken;  // Token is valid
         }
-
-        return false;
+        return null;  // Token does not exist
     }
 
+
+    //Mark the token as used after setting the password
     public void markTokenAsUsed(String token) {
         PasswordSetupToken passwordSetupToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
         passwordSetupToken.setUsed(true);
         tokenRepository.save(passwordSetupToken);
     }
+
 }
 

@@ -29,9 +29,7 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    public Optional<User> findByPasswordSetupToken(String token) {
-        return userRepository.findByPasswordSetupToken(token);
-    }
+
 
     public void saveUser(User user) {
         userRepository.save(user);

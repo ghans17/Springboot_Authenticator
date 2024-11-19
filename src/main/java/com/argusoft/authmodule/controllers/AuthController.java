@@ -4,6 +4,7 @@ import com.argusoft.authmodule.DTOs.AuthResponse;
 import com.argusoft.authmodule.DTOs.LoginRequest;
 import com.argusoft.authmodule.DTOs.OtpValidationRequest;
 import com.argusoft.authmodule.DTOs.PasswordSetupRequest;
+import com.argusoft.authmodule.entities.PasswordSetupToken;
 import com.argusoft.authmodule.entities.Token;
 import com.argusoft.authmodule.entities.User;
 import com.argusoft.authmodule.repositories.OtpRepository;
@@ -52,12 +53,18 @@ public class AuthController {
 
     @PostMapping("/password-setup")
     public ResponseEntity<?> completePasswordSetup(@RequestBody PasswordSetupRequest request) {
-        if (!passwordSetupService.validateToken(request.getToken())) {
+
+        PasswordSetupToken setupToken = passwordSetupService.validateToken(request.getToken());
+        if (setupToken == null) {
             return ResponseEntity.status(400).body("Invalid or expired token");
         }
 
-        User user = userService.findByPasswordSetupToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
+        // Retrieve the user associated with the token
+        User user = setupToken.getUser();
+        if (user == null) {
+            return ResponseEntity.status(404).body("User not found for this token");
+        }
+
 
         user.setPassword(PasswordUtil.hashPassword(request.getNewPassword()));
         userService.saveUser(user);

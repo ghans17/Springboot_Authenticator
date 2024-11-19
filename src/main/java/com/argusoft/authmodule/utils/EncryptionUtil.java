@@ -11,7 +11,7 @@ import java.util.Base64;
 public class EncryptionUtil {
 
     private static final String ALGORITHM = "AES";
-    private static final String SECRET_KEY = "ASFACASDFACASDFASFASFDAFASFASDAADSCSDFADCVSGCFVADXCcadwavfsfarvf";
+    private static final String SECRET_KEY = "ASFACASDFACASDFASFASFDAFASFASDAADSCSDFADCVSGCFVADXC";
 
     // Generate a secret key from this secret string
     private static SecretKey getSecretKey() throws Exception {

@@ -13,7 +13,8 @@ public class PasswordSetupToken {
     @Column(nullable = false, unique = true)
     private String token;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(nullable = false)
