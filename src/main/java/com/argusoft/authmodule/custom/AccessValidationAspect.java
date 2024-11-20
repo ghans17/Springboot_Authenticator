@@ -28,17 +28,13 @@ public class AccessValidationAspect {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private AppIdRepository appIdRepository;  // We need this to check App-ID
-
-
         @Before("@annotation(validateAccess)")
-        public void validateToken(JoinPoint joinPoint, ValidateAcess validateAcess) throws Throwable {
+        public void validateToken(JoinPoint joinPoint, ValidateAccess validateAccess) throws Throwable {
             String token = getTokenFromRequest();
 
             // Validate the token
             if (token == null || !tokenService.validateAccessToken(token)) {
-                throw new RuntimeException(validateAcess.message());
+                throw new RuntimeException(validateAccess.message());
             }
 
             // If valid, extend the expiration time
@@ -52,7 +48,7 @@ public class AccessValidationAspect {
             String username = extractUsername(token);
 
             // Validate App-ID access
-            String appId = validateAcess.appId(); // Get the App-ID from the annotation
+            String appId = validateAccess.appId(); // Get the App-ID from the annotation
             if (!hasAccessToAppId(username, appId)) {
                 throw new RuntimeException("User does not have access to this App-ID.");
             }
@@ -80,6 +76,7 @@ public class AccessValidationAspect {
                 // Check if the user has the required App-ID
                 return user.getAppIds().stream()
                         .anyMatch(app -> app.getAppId().equals(appId)); // Compare with appId field
+
             }
             throw new RuntimeException("User not found");
         }

@@ -16,6 +16,9 @@ import java.util.Random;
 @Service
 public class OTPService {
 
+
+//    private static final long OTP_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes
+
     @Autowired
     private OtpRepository otpRepository;
 
@@ -57,8 +60,9 @@ public class OTPService {
         Optional<Otp> otpOptional = otpRepository.findByUser(user);
         if (otpOptional.isPresent() && otpOptional.get().getOtpCode().equals(otp)) {
             Otp otpEntry = otpOptional.get();
-            otpEntry.setValidated(true);  // Mark as validated
-            otpRepository.save(otpEntry);
+//            otpEntry.setValidated(true);  // Mark as validated
+//            otpRepository.save(otpEntry);
+            otpRepository.delete(otpEntry);
             return true;
         }
         return false;

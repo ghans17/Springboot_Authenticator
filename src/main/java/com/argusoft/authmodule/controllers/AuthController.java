@@ -99,11 +99,12 @@ public class AuthController {
             }
 
             return ResponseEntity.ok("OTP has been sent to your email.");
-        }
+        }else {
 
-        // No OTP required,then proceed with generating the access token
-        Token token = tokenService.getOrCreateToken(user);
-        return ResponseEntity.ok(new AuthResponse(token.getAccessTokenHash()));
+            // No OTP required,then proceed with generating the access token
+            Token token = tokenService.getOrCreateToken(user);
+            return ResponseEntity.ok(new AuthResponse(token.getAccessTokenHash()));
+        }
     }
 
 
