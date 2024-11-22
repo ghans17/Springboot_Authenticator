@@ -7,17 +7,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
+
 @Configuration
 @EnableAsync
 public class AsyncConfig {
+
     @Bean
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);  // Minimum number of threads
+        executor.setCorePoolSize(5);  // Minimum number of threads in the pool
         executor.setMaxPoolSize(10);  // Maximum number of threads
-        executor.setQueueCapacity(50); // Capacity of waiting tasks
+        executor.setQueueCapacity(50); // Tasks that can wait in the queue
         executor.setThreadNamePrefix("EmailExecutor-");
-        executor.initialize();
+        executor.initialize(); //Initialize the thread pool
         return executor;
     }
 }

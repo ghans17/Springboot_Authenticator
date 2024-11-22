@@ -60,8 +60,6 @@ public class OTPService {
         Optional<Otp> otpOptional = otpRepository.findByUser(user);
         if (otpOptional.isPresent() && otpOptional.get().getOtpCode().equals(otp)) {
             Otp otpEntry = otpOptional.get();
-//            otpEntry.setValidated(true);  // Mark as validated
-//            otpRepository.save(otpEntry);
             otpRepository.delete(otpEntry);
             return true;
         }
@@ -71,13 +69,23 @@ public class OTPService {
     // Check if OTP validation is required for login
     public boolean isOtpRequiredForLogin() {
         Optional<OtpProperty> otpPropertyOptional = otpPropertyRepository.findTopByOrderByIdDesc();
-        return otpPropertyOptional.map(OtpProperty::isValidation).orElse(false);
+
+        if (otpPropertyOptional.isPresent()) {
+            return otpPropertyOptional.get().isValidation();
+        } else {
+            return false;
+        }
     }
 
     // Check if OTP should be included in the response (for debugging)
     public boolean isOtpInResponse() {
         Optional<OtpProperty> otpPropertyOptional = otpPropertyRepository.findTopByOrderByIdDesc();
-        return otpPropertyOptional.map(OtpProperty::isInResponse).orElse(false);
+
+        if (otpPropertyOptional.isPresent()) {
+            return otpPropertyOptional.get().isInResponse();
+        } else {
+            return false;
+        }
     }
 }
 
