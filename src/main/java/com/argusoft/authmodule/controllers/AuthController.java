@@ -15,12 +15,9 @@ import com.argusoft.authmodule.services.UserService;
 import com.argusoft.authmodule.utils.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-
+@CrossOrigin
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -48,7 +45,7 @@ public class AuthController {
         // Create a password setup token and send email
         passwordSetupService.createPasswordSetupToken(savedUser);
 
-        return ResponseEntity.ok("Registration successful. Password setup link has been sent to your email.");
+        return ResponseEntity.status(200).body("Registration successful. Password setup link has been sent to your email.");
     }
 
     @PostMapping("/password-setup")
@@ -116,7 +113,7 @@ public class AuthController {
         // Validate the OTP
         boolean isValid = otpService.validateOtp(user, otpValidationRequest.getOtpCode());
         if (!isValid) {
-            return ResponseEntity.status(400).body("Invalid OTP");
+            return ResponseEntity.status(400).body("Invalid or expired OTP");
         }
 
         // OTP is valid,then proceed to generate token

@@ -36,21 +36,4 @@ public class UserService {
     }
 
 
-    //authenticate and generate token
-//    public String authenticateUser(LoginRequest loginRequest) {
-//        User user = findByUsername(loginRequest.getUsername())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        if (!PasswordUtil.matchPassword(loginRequest.getPassword(), user.getPassword())) {
-//            throw new RuntimeException("Invalid password");
-//        }
-//
-//        String accessToken = JwtUtil.generateAccessToken(user.getUsername());
-//        String hashedAccessToken = tokenService.hashToken(accessToken);
-//        tokenService.generateTokens(user, accessToken, hashedAccessToken);
-//
-//        return hashedAccessToken;
-//    }
-
-
 }

@@ -17,8 +17,6 @@ import java.util.Random;
 public class OTPService {
 
 
-//    private static final long OTP_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes
-
     @Autowired
     private OtpRepository otpRepository;
 
@@ -33,8 +31,15 @@ public class OTPService {
         // Check if an unvalidated OTP already exists for this user
         Optional<Otp> existingOtp = otpRepository.findByUserAndValidated(user, false);
         if (existingOtp.isPresent()) {
-            // If an OTP already exists and hasn't been validated, return the existing OTP
-            return existingOtp.get().getOtpCode();
+            Otp otpEntry = existingOtp.get();
+            // Check if the existing OTP has expired
+            if (otpEntry.getExpiresAt().isAfter(LocalDateTime.now())) {
+                // If OTP is still valid, return the existing OTP
+                return otpEntry.getOtpCode();
+            } else {
+                // If OTP is expired, delete it
+                otpRepository.delete(otpEntry);
+            }
         }
 
         // If no unvalidated OTP exists, generate a new one
@@ -44,6 +49,7 @@ public class OTPService {
         otpEntry.setOtpCode(otp);
         otpEntry.setValidated(false);  // Set to false initially
         otpEntry.setCreatedAt(LocalDateTime.now());
+        otpEntry.setExpiresAt(LocalDateTime.now().plusMinutes(5));
 
         otpRepository.save(otpEntry); // Save the OTP
 
@@ -58,13 +64,25 @@ public class OTPService {
     // Validate OTP for user
     public boolean validateOtp(User user, String otp) {
         Optional<Otp> otpOptional = otpRepository.findByUser(user);
-        if (otpOptional.isPresent() && otpOptional.get().getOtpCode().equals(otp)) {
+
+        if (otpOptional.isPresent()) {
             Otp otpEntry = otpOptional.get();
-            otpRepository.delete(otpEntry);
-            return true;
+            // Check if the OTP has expired
+            if (otpEntry.getExpiresAt().isBefore(LocalDateTime.now())) {
+                otpRepository.delete(otpEntry); // Delete expired OTP
+                return false;
+            }
+
+            // Check if OTP matches
+            if (otpEntry.getOtpCode().equals(otp)) {
+                otpEntry.setValidated(true); // Mark OTP as validated
+                otpRepository.save(otpEntry);
+                return true;
+            }
         }
         return false;
     }
+
 
     // Check if OTP validation is required for login
     public boolean isOtpRequiredForLogin() {
