@@ -21,7 +21,6 @@ public class UserService {
     //create user
     public User registerUser(User user) {
         user.setPassword(null);
-//        user.setPassword(PasswordUtil.hashPassword(user.getPassword()));
         return userRepository.save(user);
     }
 

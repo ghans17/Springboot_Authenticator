@@ -1,6 +1,8 @@
 package com.argusoft.authmodule.services;
 
+import com.argusoft.authmodule.entities.EmailQueue;
 import com.argusoft.authmodule.entities.EmailTemplate;
+import com.argusoft.authmodule.repositories.EmailQueueRepository;
 import com.argusoft.authmodule.repositories.EmailTemplateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -17,10 +19,10 @@ public class EmailService {
     private EmailTemplateRepository emailTemplateRepository;
 
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailQueueRepository emailQueueRepository;
 
-    @Async  // Mark this method for asynchronous execution
-    public void sendEmail(String to, String templateName, Map<String, String> placeholders) {
+
+    public void queueEmail(String to, String templateName, Map<String, String> placeholders) {
         // Retrieve the template
         EmailTemplate template = emailTemplateRepository.findByName(templateName)
                 .orElseThrow(() -> new IllegalArgumentException("Template not found"));
@@ -31,17 +33,19 @@ public class EmailService {
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             body = body.replace("{{" + entry.getKey() + "}}", entry.getValue());
         }
+        queueEmailMessage(to, subject, body);
 
-        // Send the email
-        sendEmailMessage(to, subject, body);
     }
 
 
-    private void sendEmailMessage(String to, String subject, String body) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(body);
-        mailSender.send(message);
+    //saving in email queue
+    private void queueEmailMessage(String to, String subject, String body) {
+        EmailQueue emailQueue = new EmailQueue();
+        emailQueue.setToEmail(to);
+        emailQueue.setSubject(subject);
+        emailQueue.setBody(body);
+
+        // Save email to queue
+        emailQueueRepository.save(emailQueue);
     }
 }

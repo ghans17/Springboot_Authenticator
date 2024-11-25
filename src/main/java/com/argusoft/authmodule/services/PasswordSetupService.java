@@ -54,7 +54,7 @@ public class PasswordSetupService {
         placeholders.put("setupLink", passwordSetupLink);
 //        placeholders.put("username", user.getUsername());
 
-        emailService.sendEmail(user.getEmail(), "PASSWORD_SETUP_EMAIL", placeholders);
+        emailService.queueEmail(user.getEmail(), "PASSWORD_SETUP_EMAIL", placeholders);
     }
 
     public PasswordSetupToken validateToken(String token) {

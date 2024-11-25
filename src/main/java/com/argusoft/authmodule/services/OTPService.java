@@ -56,7 +56,7 @@ public class OTPService {
         // Send OTP email
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("otp", otp);
-        emailService.sendEmail(user.getEmail(), "OTP_EMAIL", placeholders);
+        emailService.queueEmail(user.getEmail(), "OTP_EMAIL", placeholders);
 
         return otp;
     }

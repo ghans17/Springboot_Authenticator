@@ -31,8 +31,6 @@ public class User {
     @Column()
     private String password;
 
-
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_appid",
