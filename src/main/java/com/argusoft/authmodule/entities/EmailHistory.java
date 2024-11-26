@@ -1,32 +1,50 @@
 package com.argusoft.authmodule.entities;
 
-
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "email_queue")
-public class EmailQueue {
+@Table(name = "email_history")
+public class EmailHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
+    private String transactionId; // Unique transaction ID
+
+    @Column(nullable = false)
     private String toEmail;
 
-    private String cc; // Comma-separated CC emails
+    private String fromEmail;
 
-    private String bcc; // Comma-separated BCC emails
+    private String cc;
+
+    private String bcc;
 
     @Column(nullable = false)
     private String subject;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String body;
 
-    private String attachments; // Comma-separated file paths
+    @Column
+    private String attachments; // File paths or URLs, stored as a comma-separated string
 
     @Column(nullable = false)
-    private boolean isProcessed = false;
+    private LocalDateTime sentAt;
+
+    // Getters and Setters
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
 
     public String getToEmail() {
         return toEmail;
@@ -34,6 +52,14 @@ public class EmailQueue {
 
     public void setToEmail(String toEmail) {
         this.toEmail = toEmail;
+    }
+
+    public String getFromEmail() {
+        return fromEmail;
+    }
+
+    public void setFromEmail(String fromEmail) {
+        this.fromEmail = fromEmail;
     }
 
     public String getCc() {
@@ -76,11 +102,12 @@ public class EmailQueue {
         this.attachments = attachments;
     }
 
-    public boolean isProcessed() {
-        return isProcessed;
+    public LocalDateTime getSentAt() {
+        return sentAt;
     }
 
-    public void setProcessed(boolean processed) {
-        isProcessed = processed;
+    public void setSentAt(LocalDateTime sentAt) {
+        this.sentAt = sentAt;
     }
 }
+

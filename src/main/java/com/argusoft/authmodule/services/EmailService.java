@@ -33,19 +33,25 @@ public class EmailService {
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             body = body.replace("{{" + entry.getKey() + "}}", entry.getValue());
         }
-        queueEmailMessage(to, subject, body);
+        String cc=template.getCc();
+        String bcc=template.getBcc();
+        String attachments=template.getAttachments();
+        queueEmailMessage(to,cc,bcc, subject, body,attachments);
 
     }
 
 
     //saving in email queue
-    private void queueEmailMessage(String to, String subject, String body) {
+    public void queueEmailMessage(String to, String cc, String bcc, String subject, String body, String attachments) {
         EmailQueue emailQueue = new EmailQueue();
         emailQueue.setToEmail(to);
+        emailQueue.setCc(cc);
+        emailQueue.setBcc(bcc);
         emailQueue.setSubject(subject);
         emailQueue.setBody(body);
+        emailQueue.setAttachments(attachments);
 
-        // Save email to queue
         emailQueueRepository.save(emailQueue);
     }
+
 }

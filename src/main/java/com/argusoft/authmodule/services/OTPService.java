@@ -1,9 +1,9 @@
 package com.argusoft.authmodule.services;
 import com.argusoft.authmodule.entities.Otp;
-import com.argusoft.authmodule.entities.OtpProperty;
+import com.argusoft.authmodule.entities.PropertyManager;
 import com.argusoft.authmodule.entities.User;
-import com.argusoft.authmodule.repositories.OtpPropertyRepository;
 import com.argusoft.authmodule.repositories.OtpRepository;
+import com.argusoft.authmodule.repositories.PropertyManagerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class OTPService {
     private OtpRepository otpRepository;
 
     @Autowired
-    private OtpPropertyRepository otpPropertyRepository;
+    private PropertyManagerRepository propertyManagerRepository;
 
     @Autowired
     private EmailService emailService;
@@ -83,13 +83,12 @@ public class OTPService {
         return false;
     }
 
-
     // Check if OTP validation is required for login
     public boolean isOtpRequiredForLogin() {
-        Optional<OtpProperty> otpPropertyOptional = otpPropertyRepository.findTopByOrderByIdDesc();
+        Optional<PropertyManager> otpPropertyOptional = propertyManagerRepository.findTopByNameOrderByIdDesc("otp_validation");
 
         if (otpPropertyOptional.isPresent()) {
-            return otpPropertyOptional.get().isValidation();
+            return otpPropertyOptional.get().getValue();
         } else {
             return false;
         }
@@ -97,10 +96,10 @@ public class OTPService {
 
     // Check if OTP should be included in the response (for debugging)
     public boolean isOtpInResponse() {
-        Optional<OtpProperty> otpPropertyOptional = otpPropertyRepository.findTopByOrderByIdDesc();
+        Optional<PropertyManager> otpPropertyOptional = propertyManagerRepository.findTopByNameOrderByIdDesc("otp_inResponse");
 
         if (otpPropertyOptional.isPresent()) {
-            return otpPropertyOptional.get().isInResponse();
+            return otpPropertyOptional.get().getValue();
         } else {
             return false;
         }
