@@ -56,6 +56,7 @@ public class EmailQueueProcessor {
             } catch (Exception e) {
                 // Log error if sending failed
                 System.err.println("Failed to send email: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -68,18 +69,112 @@ public class EmailQueueProcessor {
         helper.setTo(email.getToEmail());
         helper.setSubject(email.getSubject());
 
-        helper.setText(email.getBody(), true); // true for HTML content
 
-        // Add CC and BCC (if any)
-        if (email.getCc() != null) {
+        // Construct the email body with HTML and CSS styling
+        String htmlBody = """
+    <html>
+        <head>
+            <style>
+                /* General styling for the email body */
+                body {
+                    font-family: 'Arial', sans-serif;
+                    line-height: 1.8;
+                    background-color: #f9f9f9;
+                    color: #333333;
+                    margin: 0;
+                    padding: 20px;
+                }
+    
+                /* Container to center the email and add padding */
+                .email-container {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background-color: #ffffff;
+                    border: 1px solid #dddddd;
+                    border-radius: 8px;
+                    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                }
+
+                /* Header section */
+                .header {
+                    background-color: #007BFF;
+                    color: #ffffff;
+                    padding: 15px 20px;
+                    text-align: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                }
+
+                /* Main content section */
+                .content {
+                    padding: 20px;
+                }
+
+                .content p {
+                    font-size: 16px;
+                    color: #555555;
+                    margin-bottom: 15px;
+                }
+
+                /* Footer section */
+                .footer {
+                    background-color: #f1f1f1;
+                    padding: 10px 20px;
+                    text-align: center;
+                    font-size: 12px;
+                    color: #888888;
+                }
+                .footer {
+                    border-top: 1px solid #dddddd;
+                    margin-top: 20px;
+                }
+
+                /*For Links inside the email */
+                a {
+                    color: #007BFF;
+                    text-decoration: none;
+                }
+
+                a:hover {
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="email-container">
+                <!-- Email Header -->
+                <div class="header">
+                    Important Notification
+                </div>
+
+                <!-- Email Content -->
+                <div class="content">
+                    <p>%s</p>
+                </div>
+
+                <!-- Email Footer -->
+                <div class="footer">
+                    This is an automated email. Please do not reply.<br />
+                    <a href="https://abc.com/unsubscribe">Unsubscribe</a>
+                </div>
+            </div>
+        </body>
+    </html>
+    """.formatted(email.getBody());
+
+        helper.setText(email.getBody(), htmlBody);
+
+        //Add cc,bcc if any
+        if (email.getCc() != null && !email.getCc().isEmpty()) {
             helper.setCc(email.getCc().split(","));
         }
-        if (email.getBcc() != null) {
+        if (email.getBcc() != null && !email.getBcc().isEmpty()) {
             helper.setBcc(email.getBcc().split(","));
         }
 
         // Add attachments (if any)
-        if (email.getAttachments() != null) {
+        if (email.getAttachments() != null && !email.getAttachments().isEmpty()) {
             for (String filePath : email.getAttachments().split(",")) {
                 FileSystemResource file = new FileSystemResource(new File(filePath));
                 helper.addAttachment(file.getFilename(), file);
@@ -95,7 +190,7 @@ public class EmailQueueProcessor {
         EmailHistory emailHistory = new EmailHistory();
         emailHistory.setTransactionId(transactionId);
         emailHistory.setToEmail(email.getToEmail());
-        emailHistory.setFromEmail("email@domain.com"); //actual mail of the config file
+        emailHistory.setFromEmail("abc@gmail.com"); //actual mail of the config file
         emailHistory.setCc(email.getCc());
         emailHistory.setBcc(email.getBcc());
         emailHistory.setSubject(email.getSubject());
@@ -109,13 +204,3 @@ public class EmailQueueProcessor {
 
 
 
-
-
-
-//String Emailcontent=createcontent(email.getBody());
-//private String createcontent(String body) {
-//        return """
-//                <html>
-//                </html>
-//                """;
-//    }
