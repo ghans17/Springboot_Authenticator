@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ProtectedController {
 
-
-
     @ValidateAccess(appId = "PROJECT_X")  // Require "PROJECT_X" App-ID to access this endpoint
     @GetMapping("/protected-data")
     public ResponseEntity<String> getProtectedData() {

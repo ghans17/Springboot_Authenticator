@@ -1,9 +1,9 @@
 package com.argusoft.authmodule.services;
-import com.argusoft.authmodule.entities.Otp;
-import com.argusoft.authmodule.entities.PropertyManager;
-import com.argusoft.authmodule.entities.User;
+import com.argusoft.authmodule.entities.*;
 import com.argusoft.authmodule.repositories.OtpRepository;
+import com.argusoft.authmodule.repositories.OtpSettingsRepository;
 import com.argusoft.authmodule.repositories.PropertyManagerRepository;
+import com.argusoft.authmodule.repositories.UserOtpStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,6 @@ import java.util.Random;
 @Service
 public class OTPService {
 
-
     @Autowired
     private OtpRepository otpRepository;
 
@@ -24,71 +23,202 @@ public class OTPService {
     private PropertyManagerRepository propertyManagerRepository;
 
     @Autowired
+    private OtpSettingsRepository otpSettingsRepository;
+
+    @Autowired
+    private UserOtpStatusRepository userOtpStatusRepository;
+
+    @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
 
     // Generate OTP for user
     public String generateOtpForUser(User user) {
-        // Check if an unvalidated OTP already exists for this user
-        Optional<Otp> existingOtp = otpRepository.findByUserAndValidated(user, false);
-        if (existingOtp.isPresent()) {
-            Otp otpEntry = existingOtp.get();
-            // Check if the existing OTP has expired
-            if (otpEntry.getExpiresAt().isAfter(LocalDateTime.now())) {
-                // If OTP is still valid, return the existing OTP
-                return otpEntry.getOtpCode();
+        OtpSettings otpSettings = otpSettingsRepository.findTopByOrderByIdDesc()
+                .orElseThrow(() -> new RuntimeException("OTP settings not configured"));
+
+        String userIdentifier = user.getEmail();
+
+        Optional<UserOtpStatus> statusOpt = userOtpStatusRepository.findById(userIdentifier);
+        if (statusOpt.isPresent()) {
+            UserOtpStatus status = statusOpt.get();
+            if (status.getLockoutEndTime() != null && LocalDateTime.now().isBefore(status.getLockoutEndTime())) {
+                throw new RuntimeException("User is locked out until " + status.getLockoutEndTime());
+            }
+            // Reset retry count and lockoutEndTime if lockout period has passed
+            if (status.getLockoutEndTime() != null && LocalDateTime.now().isAfter(status.getLockoutEndTime())) {
+                status.setOtpRetryCount(0);
+                status.setLockoutEndTime(null);
+            }
+        }
+
+        // Initialize variables
+        String emailOtp = null;
+        String smsOtp = null;
+
+        // Check for existing unvalidated OTP
+        Optional<Otp> existingOtpOpt = otpRepository.findByUserAndValidated(user, false);
+
+        if (existingOtpOpt.isPresent()) {
+            // Use existing OTPs
+            Otp existingOtp = existingOtpOpt.get();
+            if (existingOtp.getExpiresAt().isAfter(LocalDateTime.now())) {
+                emailOtp = existingOtp.getEmailOtp();
+                smsOtp = existingOtp.getSmsOtp();
             } else {
                 // If OTP is expired, delete it
-                otpRepository.delete(otpEntry);
+                otpRepository.delete(existingOtp);
             }
         }
 
-        // If no unvalidated OTP exists, generate a new one
-        String otp = String.format("%06d", new Random().nextInt(1000000)); // Generates a 6-digit OTP
-        Otp otpEntry = new Otp();
-        otpEntry.setUser(user);
-        otpEntry.setOtpCode(otp);
-        otpEntry.setValidated(false);  // Set to false initially
-        otpEntry.setCreatedAt(LocalDateTime.now());
-        otpEntry.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+        // If OTPs were not initialized, generate new OTPs
+        if (emailOtp == null || smsOtp == null) {
+            emailOtp = generateOtp(otpSettings.getOtpLength(), otpSettings.getOtpType());
+            smsOtp = otpSettings.isDifferentForPhoneEmail()
+                    ? generateOtp(otpSettings.getOtpLength(), otpSettings.getOtpType())
+                    : emailOtp;
 
-        otpRepository.save(otpEntry); // Save the OTP
+            // Save the new OTPs in the database
+            Otp otpEntry = new Otp();
+            otpEntry.setUser(user);
+            otpEntry.setEmailOtp(emailOtp);
+            otpEntry.setSmsOtp(smsOtp);
+            otpEntry.setValidated(false);
+            otpEntry.setCreatedAt(LocalDateTime.now());
+            otpEntry.setExpiresAt(LocalDateTime.now().plusMinutes(otpSettings.getOtpExpirationTime()));
 
-        // Send OTP email
+            otpRepository.save(otpEntry);
+        }
+
+        // Send OTP via Email
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("otp", otp);
+        placeholders.put("otp", emailOtp);
         emailService.queueEmail(user.getEmail(), "OTP_EMAIL", placeholders);
 
-        return otp;
+        // Send OTP via SMS
+        if (user.getPhone() != null) {
+            String message = "Your OTP is: " + smsOtp + ". It is valid for " + otpSettings.getOtpExpirationTime() + " minutes.";
+            smsService.sendSms(user.getPhone(), message);
+        }
+
+        // Update user OTP status
+        UserOtpStatus status = statusOpt.orElse(new UserOtpStatus());
+        status.setUserIdentifier(userIdentifier);
+        status.setOtpRetryCount(status.getOtpRetryCount() + 1);
+
+        int otpRetryLimit = otpSettings.getOtpRetryLimit();
+        if (status.getOtpRetryCount() > otpRetryLimit) {
+            LocalDateTime lockoutUntil = LocalDateTime.now().plusSeconds(otpSettings.getLockoutTime());
+            status.setLockoutEndTime(lockoutUntil);
+            userOtpStatusRepository.save(status);
+            throw new RuntimeException("User locked out until " + lockoutUntil);
+        }
+
+        userOtpStatusRepository.save(status);
+        return emailOtp; // Returning email OTP as default for confirmation/debugging
     }
 
-    // Validate OTP for user
-    public boolean validateOtp(User user, String otp) {
-        Optional<Otp> otpOptional = otpRepository.findByUser(user);
 
-        if (otpOptional.isPresent()) {
-            Otp otpEntry = otpOptional.get();
-            // Check if the OTP has expired
-            if (otpEntry.getExpiresAt().isBefore(LocalDateTime.now())) {
-                otpRepository.delete(otpEntry); // Delete expired OTP
-                return false;
-            }
+    // Generate OTP based on type (numeric or alphanumeric)
+    private String generateOtp(int length, String type) {
+        StringBuilder otp = new StringBuilder();
+        Random random = new Random();
 
-            // Check if OTP matches
-            if (otpEntry.getOtpCode().equals(otp)) {
-                otpEntry.setValidated(true); // Mark OTP as validated
-                otpRepository.save(otpEntry);
-                return true;
+        if ("numeric".equalsIgnoreCase(type)) {
+            String characters = "0123456789";
+            for (int i = 0; i < length; i++) {
+                otp.append(characters.charAt(random.nextInt(characters.length())));
             }
+        } else if ("alphanumeric".equalsIgnoreCase(type)) {
+            String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            for (int i = 0; i < length; i++) {
+                otp.append(characters.charAt(random.nextInt(characters.length())));
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid OTP type");
         }
-        return false;
+
+        return otp.toString();
+    }
+
+    public boolean validateOtp(User user, String otp) {
+        String userIdentifier = user.getEmail();
+
+        Optional<UserOtpStatus> statusOpt = userOtpStatusRepository.findById(userIdentifier);
+        UserOtpStatus status = statusOpt.orElse(new UserOtpStatus());
+        status.setUserIdentifier(userIdentifier);
+
+        // Check if user is locked out
+        if (status.getLockoutEndTime() != null && LocalDateTime.now().isBefore(status.getLockoutEndTime())) {
+            throw new RuntimeException("User is locked out until " + status.getLockoutEndTime());
+        }
+
+        // Retrieve unvalidated OTP
+        Optional<Otp> otpOptional = otpRepository.findByUserAndValidated(user, false);
+        if (otpOptional.isEmpty()) {
+            // No OTP exists, increment retry count
+            status.setOtpRetryCount(status.getOtpRetryCount() + 1);
+
+            int otpRetryLimit = otpSettingsRepository.findTopByOrderByIdDesc()
+                    .map(OtpSettings::getOtpRetryLimit)
+                    .orElse(3); // Default retry limit
+            if (status.getOtpRetryCount() > otpRetryLimit) {
+                int lockoutDuration = otpSettingsRepository.findTopByOrderByIdDesc()
+                        .map(OtpSettings::getLockoutTime)
+                        .orElse(300); // Default lockout duration
+                LocalDateTime lockoutUntil = LocalDateTime.now().plusSeconds(lockoutDuration);
+                status.setLockoutEndTime(lockoutUntil);
+                userOtpStatusRepository.save(status);
+                throw new RuntimeException("User locked out until " + lockoutUntil);
+            }
+
+            userOtpStatusRepository.save(status);
+            return false;
+        }
+
+        // Validate OTP
+        Otp otpEntry = otpOptional.get();
+        if (otpEntry.getExpiresAt().isBefore(LocalDateTime.now())) {
+            otpRepository.delete(otpEntry); // Expired OTP
+            return false;
+        }
+
+        if (otpEntry.getEmailOtp().equals(otp) || otpEntry.getSmsOtp().equals(otp)) {
+            otpRepository.delete(otpEntry); // Valid OTP, delete entry
+            status.setOtpRetryCount(0); // Reset retry count
+            status.setLockoutEndTime(null);
+            userOtpStatusRepository.save(status);
+            return true;
+        } else {
+            status.setOtpRetryCount(status.getOtpRetryCount() + 1);
+
+            int otpRetryLimit = otpSettingsRepository.findTopByOrderByIdDesc()
+                    .map(OtpSettings::getOtpRetryLimit)
+                    .orElse(3);
+            if (status.getOtpRetryCount() > otpRetryLimit) {
+                int lockoutDuration = otpSettingsRepository.findTopByOrderByIdDesc()
+                        .map(OtpSettings::getLockoutTime)
+                        .orElse(300);
+                LocalDateTime lockoutUntil = LocalDateTime.now().plusSeconds(lockoutDuration);
+                status.setLockoutEndTime(lockoutUntil);
+                userOtpStatusRepository.save(status);
+                throw new RuntimeException("User locked out until " + lockoutUntil);
+            }
+
+            userOtpStatusRepository.save(status);
+            return false;
+        }
     }
 
     // Check if OTP validation is required for login
     public boolean isOtpRequiredForLogin() {
-        Optional<PropertyManager> otpPropertyOptional = propertyManagerRepository.findTopByNameOrderByIdDesc("otp_validation");
+        Optional<PropertyManager> otpPropertyOptional = propertyManagerRepository
+                .findTopByNameOrderByIdDesc("otp_validation");
 
         if (otpPropertyOptional.isPresent()) {
-            return otpPropertyOptional.get().getValue();
+            return otpPropertyOptional.get().getValue() != null && otpPropertyOptional.get().getValue();
         } else {
             return false;
         }
@@ -96,33 +226,13 @@ public class OTPService {
 
     // Check if OTP should be included in the response (for debugging)
     public boolean isOtpInResponse() {
-        Optional<PropertyManager> otpPropertyOptional = propertyManagerRepository.findTopByNameOrderByIdDesc("otp_inResponse");
+        Optional<PropertyManager> otpPropertyOptional = propertyManagerRepository
+                .findTopByNameOrderByIdDesc("otp_inResponse");
 
         if (otpPropertyOptional.isPresent()) {
-            return otpPropertyOptional.get().getValue();
+            return otpPropertyOptional.get().getValue() != null && otpPropertyOptional.get().getValue();
         } else {
             return false;
         }
     }
 }
-
-
-
-
-
-
-
-    // Generate a random OTP
-//    private String generateRandomOTP() {
-//        int length = 6;
-//        String characters = "0123456789";
-//        StringBuilder otp = new StringBuilder();
-//        Random ran = new Random();
-//        for (int i = 0; i < length; i++) {
-//            otp.append(characters.charAt(ran.nextInt(characters.length())));
-//        }
-//        return otp.toString();
-//    }
-
-
-

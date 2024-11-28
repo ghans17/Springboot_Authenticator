@@ -1,9 +1,11 @@
 package com.argusoft.authmodule.entities;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 @Entity
+@Data
 @Table(name = "otp")
 public class Otp {
 
@@ -15,33 +17,14 @@ public class Otp {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String otpCode;
-
     private boolean validated;  // To indicate whether OTP is validated or not
 
     private LocalDateTime createdAt;
 
     private LocalDateTime expiresAt;
 
-    // Getters and Setters
+    private int retryCount;
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public String getOtpCode() { return otpCode; }
-    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
-
-    public boolean isValidated() { return validated; }
-    public void setValidated(boolean validated) { this.validated = validated; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
-    }
+    private String emailOtp;
+    private String smsOtp;
 }

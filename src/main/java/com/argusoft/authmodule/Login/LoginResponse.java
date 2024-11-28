@@ -1,15 +1,15 @@
-package com.argusoft.authmodule.DTOs;
+package com.argusoft.authmodule.Login;
 
-public class AuthResponse {
+public class LoginResponse {
     private String accessToken;
     private String otpCode;
 
-    public AuthResponse(String accessToken, String otpCode) {
+    public LoginResponse(String accessToken, String otpCode) {
         this.accessToken = accessToken;
         this.otpCode = otpCode;
     }
 
-    public AuthResponse(String accessToken) {
+    public LoginResponse(String accessToken) {
         this.accessToken=accessToken;
     }
 

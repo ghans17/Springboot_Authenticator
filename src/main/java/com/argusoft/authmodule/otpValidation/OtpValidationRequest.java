@@ -1,4 +1,4 @@
-package com.argusoft.authmodule.DTOs;
+package com.argusoft.authmodule.otpValidation;
 
 public class OtpValidationRequest {
 

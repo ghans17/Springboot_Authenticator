@@ -1,4 +1,4 @@
-package com.argusoft.authmodule.DTOs;
+package com.argusoft.authmodule.passwordSetup;
 
 public class PasswordSetupRequest {
     private String token;

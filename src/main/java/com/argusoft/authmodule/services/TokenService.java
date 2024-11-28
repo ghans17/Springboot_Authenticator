@@ -40,6 +40,7 @@ public class TokenService {
         newToken.setUser(user);
         newToken.setAccessToken(accessToken);
         newToken.setAccessTokenHash(hashedAccessToken);
+        newToken.setCreatedAt(LocalDateTime.now());
         newToken.setExpiresAt(LocalDateTime.now().plusHours(1)); // Set expiration time
         return tokenRepository.save(newToken); // Save the new token
     }
