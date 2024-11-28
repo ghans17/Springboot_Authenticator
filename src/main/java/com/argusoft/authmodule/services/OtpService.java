@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
-public class OTPService {
+public class OtpService {
 
     @Autowired
     private OtpRepository otpRepository;

@@ -3,7 +3,7 @@ package com.argusoft.authmodule.otpValidation;
 import com.argusoft.authmodule.Login.LoginResponse;
 import com.argusoft.authmodule.entities.Token;
 import com.argusoft.authmodule.entities.User;
-import com.argusoft.authmodule.services.OTPService;
+import com.argusoft.authmodule.services.OtpService;
 import com.argusoft.authmodule.services.TokenService;
 import com.argusoft.authmodule.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ public class OtpValidationService {
     private UserService userService;
 
     @Autowired
-    private OTPService otpService;
+    private OtpService otpService;
 
     @Autowired
     private TokenService tokenService;

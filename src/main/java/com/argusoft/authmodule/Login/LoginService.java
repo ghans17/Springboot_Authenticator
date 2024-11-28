@@ -2,7 +2,7 @@ package com.argusoft.authmodule.Login;
 
 import com.argusoft.authmodule.entities.Token;
 import com.argusoft.authmodule.entities.User;
-import com.argusoft.authmodule.services.OTPService;
+import com.argusoft.authmodule.services.OtpService;
 import com.argusoft.authmodule.services.TokenService;
 import com.argusoft.authmodule.services.UserService;
 import com.argusoft.authmodule.utils.PasswordUtil;
@@ -22,7 +22,7 @@ public class LoginService {
     private PasswordUtil passwordUtil;
 
     @Autowired
-    private OTPService otpService;
+    private OtpService otpService;
 
     @Autowired
     private TokenService tokenService;
@@ -38,7 +38,7 @@ public class LoginService {
         }
 
         // Verify password
-        if (!PasswordUtil.matchPassword(loginRequest.getPassword(), user.getPassword())) {
+        if (!passwordUtil.matchPassword(loginRequest.getPassword(), user.getPassword())) {
             throw new AuthenticationException("Invalid password");
         }
 
