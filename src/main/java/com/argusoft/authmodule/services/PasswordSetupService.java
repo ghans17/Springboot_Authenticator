@@ -47,7 +47,7 @@ public class PasswordSetupService {
     }
 
     private void sendPasswordSetupEmail(User user, String token) {
-        String passwordSetupLink = "https://app.com/password-setup?token=" + token;
+        String passwordSetupLink = "http://localhost:4200/password-setup?token=" + token;
 
         // Prepare placeholders for the email template
         Map<String, String> placeholders = new HashMap<>();

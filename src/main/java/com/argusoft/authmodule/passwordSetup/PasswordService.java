@@ -20,8 +20,7 @@ public class PasswordService {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private PasswordUtil passwordUtil;
+
 
     public void passwordSetup(PasswordSetupRequest request){
         PasswordSetupToken setupToken = passwordSetupService.validateToken(request.getToken());
@@ -35,7 +34,7 @@ public class PasswordService {
             throw new NoSuchElementException("User not found for this token");
         }
 
-        user.setPassword(passwordUtil.hashPassword(request.getNewPassword()));
+        user.setPassword(PasswordUtil.hashPassword(request.getNewPassword()));
         userService.saveUser(user);
 
         passwordSetupService.markTokenAsUsed(request.getToken());

@@ -24,6 +24,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public boolean isEmailUnique(String email) {
+        return !userRepository.existsByEmail(email);
+    }
+
+    public boolean isUsernameUnique(String username) {
+        return !userRepository.existsByUsername(username);
+    }
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }

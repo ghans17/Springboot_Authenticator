@@ -44,6 +44,7 @@ public class OtpService {
         Optional<UserOtpStatus> statusOpt = userOtpStatusRepository.findById(userIdentifier);
         if (statusOpt.isPresent()) {
             UserOtpStatus status = statusOpt.get();
+            // Check if user is locked out
             if (status.getLockoutEndTime() != null && LocalDateTime.now().isBefore(status.getLockoutEndTime())) {
                 throw new RuntimeException("User is locked out until " + status.getLockoutEndTime());
             }
@@ -108,6 +109,7 @@ public class OtpService {
         status.setUserIdentifier(userIdentifier);
         status.setOtpRetryCount(status.getOtpRetryCount() + 1);
 
+        //check if retry limit is reached, then set lockout
         int otpRetryLimit = otpSettings.getOtpRetryLimit();
         if (status.getOtpRetryCount() > otpRetryLimit) {
             LocalDateTime lockoutUntil = LocalDateTime.now().plusSeconds(otpSettings.getLockoutTime());
@@ -154,6 +156,11 @@ public class OtpService {
         if (status.getLockoutEndTime() != null && LocalDateTime.now().isBefore(status.getLockoutEndTime())) {
             throw new RuntimeException("User is locked out until " + status.getLockoutEndTime());
         }
+        // Reset retry count and lockoutEndTime if lockout period has passed
+        if (status.getLockoutEndTime() != null && LocalDateTime.now().isAfter(status.getLockoutEndTime())) {
+            status.setOtpRetryCount(0);
+            status.setLockoutEndTime(null);
+        }
 
         // Retrieve unvalidated OTP
         Optional<Otp> otpOptional = otpRepository.findByUserAndValidated(user, false);
@@ -161,9 +168,12 @@ public class OtpService {
             // No OTP exists, increment retry count
             status.setOtpRetryCount(status.getOtpRetryCount() + 1);
 
+            //set retry limit
             int otpRetryLimit = otpSettingsRepository.findTopByOrderByIdDesc()
                     .map(OtpSettings::getOtpRetryLimit)
                     .orElse(3); // Default retry limit
+
+            //check if retry limit is reached, then set lockout
             if (status.getOtpRetryCount() > otpRetryLimit) {
                 int lockoutDuration = otpSettingsRepository.findTopByOrderByIdDesc()
                         .map(OtpSettings::getLockoutTime)
@@ -192,11 +202,15 @@ public class OtpService {
             userOtpStatusRepository.save(status);
             return true;
         } else {
+            //increment retry count
             status.setOtpRetryCount(status.getOtpRetryCount() + 1);
 
+            //set limit
             int otpRetryLimit = otpSettingsRepository.findTopByOrderByIdDesc()
                     .map(OtpSettings::getOtpRetryLimit)
                     .orElse(3);
+
+            //check if retry limit is reached, then set lockout
             if (status.getOtpRetryCount() > otpRetryLimit) {
                 int lockoutDuration = otpSettingsRepository.findTopByOrderByIdDesc()
                         .map(OtpSettings::getLockoutTime)

@@ -24,9 +24,11 @@ public class User {
     private String lastName;
 
     //unique and cannot be null
+    @Convert(converter = EncryptionConverter.class)
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Convert(converter = EncryptionConverter.class)
     @Column(unique = true, nullable = false)
     private String username;
 

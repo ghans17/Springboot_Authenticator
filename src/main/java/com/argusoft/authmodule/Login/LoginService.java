@@ -19,9 +19,6 @@ public class LoginService {
     private UserService userService;
 
     @Autowired
-    private PasswordUtil passwordUtil;
-
-    @Autowired
     private OtpService otpService;
 
     @Autowired
@@ -38,7 +35,7 @@ public class LoginService {
         }
 
         // Verify password
-        if (!passwordUtil.matchPassword(loginRequest.getPassword(), user.getPassword())) {
+        if (!PasswordUtil.matchPassword(loginRequest.getPassword(), user.getPassword())) {
             throw new AuthenticationException("Invalid password");
         }
 
